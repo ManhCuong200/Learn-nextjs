@@ -1,28 +1,18 @@
-import Link from 'next/link';
-import RegisterForm from './_components/RegisterForm';
+import RegisterForm from '../_components/RegisterForm'
 
-export default function RegisterPage() {
+const RegisterPage = () => {
   return (
-    <div>
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Tạo tài khoản</h1>
-        <p className="text-xs text-gray-500 mt-1">
-          Đăng ký để bắt đầu viết và chia sẻ bài viết của bạn
-        </p>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
+        
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-900">Tạo tài khoản</h2>
+          <p className="text-gray-500 mt-2 text-sm">Điền thông tin của bạn để bắt đầu</p>
+        </div>
+        <RegisterForm />
       </div>
-
-      {/* Form đăng ký Client */}
-      <RegisterForm />
-
-      <p className="text-xs text-center text-gray-500 mt-6">
-        Đã có tài khoản rồi?{' '}
-        <Link
-          href="/login"
-          className="text-indigo-600 font-semibold hover:underline"
-        >
-          Đăng nhập ngay
-        </Link>
-      </p>
     </div>
-  );
+  )
 }
+
+export default RegisterPage
