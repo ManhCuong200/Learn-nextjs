@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, type FormEvent, type ChangeEvent } from 'react'
+import { useState } from 'react'
+import toast from 'react-hot-toast'
+import Link from 'next/link'
 
 interface User {
   email: string;
-  password?: string;
+  password: string;
 }
 
 const LoginForm = () => {
@@ -12,59 +14,46 @@ const LoginForm = () => {
     email: '',
     password: ''
   })
-  
-  const [status, setStatus] = useState({ 
-    isLoading: false, 
-    error: '', 
-    success: '' 
-  })
-
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  // Gọi trực tiếp React.ChangeEvent
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData, 
       [e.target.name]: e.target.value 
     })
   }
-
-const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  // Gọi trực tiếp React.FormEvent
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setStatus({ isLoading: true, error: '', success: '' })
     const { email, password } = formData
-    // Lấy data từ localStorage
     let storedUsers: User[] = []
     const localData = localStorage.getItem('users')
-    // Đề phòng trường hợp JSON.parse bị lỗi (nếu thích an toàn có thể giữ đoạn if này)
     if (localData) {
       storedUsers = JSON.parse(localData)
     }
+    // Tự tạo tài khoản mẫu nếu chưa có ai đăng ký
     if (storedUsers.length === 0) {
-      storedUsers = [
-        ...storedUsers, 
-        { email: 'admin@example.com', password: '123' }
-      ]
+      storedUsers = [...storedUsers, 
+        { email: 'admin@example.com', password: '123' }]
       localStorage.setItem('users', JSON.stringify(storedUsers))
     }
     const validUser = storedUsers.find(
       (user) => user.email === email && user.password === password
     )
-    // THẤT BẠI: Cập nhật state lỗi và DỪNG HÀM NGAY LẬP TỨC bằng 'return'
+    // THẤT BẠI: Bắn toast lỗi và DỪNG HÀM NGAY LẬP TỨC
     if (!validUser) {
-      setStatus({ isLoading: false, error: 'Email hoặc mật khẩu không chính xác!', success: '' })
-      return 
+      toast.error('Email hoặc mật khẩu không chính xác!')
+      return
     }
-    // THÀNH CÔNG: Nếu code chạy được xuống tới đây nghĩa là tài khoản hợp lệ
+    // THÀNH CÔNG
     localStorage.setItem('currentUser', JSON.stringify({ email: validUser.email }))
-    setStatus({ isLoading: false, error: '', success: 'Đăng nhập thành công!' })
+    toast.success('Đăng nhập thành công!')
+    setFormData({ email: '', password: '' })
+    // Nếu dùng Next.js, ở đây bạn có thể thêm: 
+    // router.push('/dashboard')
   }
+
   return (
     <>
-      {status.error && (
-        <div className="mb-4 p-3 text-sm text-red-600 bg-red-100 rounded-lg">{status.error}</div>
-      )}
-      {status.success && (
-        <div className="mb-4 p-3 text-sm text-green-600 bg-green-100 rounded-lg">{status.success}</div>
-      )}
-
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -75,9 +64,7 @@ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
             value={formData.email} 
             onChange={handleChange}
             placeholder="admin@example.com" 
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
-            required 
-            disabled={status.isLoading || !!status.success} 
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"  
           />
         </div>
 
@@ -90,20 +77,25 @@ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
             value={formData.password} 
             onChange={handleChange}
             placeholder="••••••••" 
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
-            required 
-            disabled={status.isLoading || !!status.success} 
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"  
           />
         </div>
 
         <button 
           type="submit" 
-          disabled={status.isLoading || !!status.success} 
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg flex justify-center items-center"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg flex justify-center items-center mt-2 disabled:opacity-70"
         >
-          {status.isLoading ? 'Đang kiểm tra...' : 'Đăng nhập'}
+            Đăng nhập
         </button>
       </form>
+      
+      {/* Chuyển hướng sang trang Đăng ký (nếu bạn có làm ở layout ngoài thì có thể bỏ qua phần này) */}
+      <p className="text-center text-sm text-gray-600 mt-6">
+        Chưa có tài khoản?{' '}
+        <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500 hover:underline">
+          Đăng ký ngay
+        </Link>
+      </p>
     </>
   )
 }

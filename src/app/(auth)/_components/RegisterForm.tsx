@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, type FormEvent, type ChangeEvent } from 'react'
+import { useState } from 'react'
+import toast from 'react-hot-toast'
+import Link from 'next/link'
 
 interface User {
   name: string;
   email: string;
-  password?: string;
+  password: string;
 }
 
 const RegisterForm = () => {
@@ -16,27 +18,18 @@ const RegisterForm = () => {
     confirmPassword: ''
   })
   
-  const [status, setStatus] = useState({ 
-    isLoading: false, 
-    error: '', 
-    success: '' 
-  })
-
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData, 
       [e.target.name]: e.target.value 
     })
   }
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setStatus({ isLoading: true, error: '', success: '' })
     const { name, email, password, confirmPassword } = formData
     // 1. Validate: Kiểm tra mật khẩu khớp nhau
     if (password !== confirmPassword) {
-      setStatus({ isLoading: false, error: 'Mật khẩu xác nhận không khớp!', success: '' })
-      return
+      toast.error('Mật khẩu xác nhận không khớp!')
     }
     let storedUsers: User[] = []
     const localData = localStorage.getItem('users')
@@ -46,29 +39,23 @@ const RegisterForm = () => {
     // 2. Validate: Kiểm tra email đã tồn tại chưa
     const isEmailExist = storedUsers.find((user) => user.email === email)
     if (isEmailExist) {
-      setStatus({ isLoading: false, error: 'Email này đã được sử dụng!', success: '' })
-      return 
+      toast.error('Email này đã được sử dụng!')
     }
-    // 3. THÀNH CÔNG: Lưu user mới vào localStorage (Dùng Spread thay vì push)
+    // 3. THÀNH CÔNG: Lưu user mới
     storedUsers = [
       ...storedUsers,
       { name, email, password }
     ]
     localStorage.setItem('users', JSON.stringify(storedUsers))
-    // Báo thành công (Ở ứng dụng thật sẽ dùng router.push('/login') để chuyển trang)
-    setStatus({ isLoading: false, error: '', success: 'Đăng ký thành công! Hãy chuyển sang Đăng nhập.' })
-    // Reset form cho sạch đẹp
+    // Bắn thông báo Toast thành công
+    toast.success('Đăng ký thành công! Hãy chuyển sang Đăng nhập.')
     setFormData({ name: '', email: '', password: '', confirmPassword: '' })
   }
+
   return (
     <>
-      {status.error && (
-        <div className="mb-4 p-3 text-sm text-red-600 bg-red-100 rounded-lg">{status.error}</div>
-      )}
-      {status.success && (
-        <div className="mb-4 p-3 text-sm text-green-600 bg-green-100 rounded-lg">{status.success}</div>
-      )}
-
+      {/* Đã xóa các thẻ div hiển thị error/success báo lỗi cũ */}
+      
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Họ và tên */}
         <div>
@@ -81,8 +68,6 @@ const RegisterForm = () => {
             onChange={handleChange}
             placeholder="Ví dụ: Nguyễn Văn A" 
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
-            required 
-            disabled={status.isLoading} 
           />
         </div>
 
@@ -97,8 +82,6 @@ const RegisterForm = () => {
             onChange={handleChange}
             placeholder="you@example.com" 
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
-            required 
-            disabled={status.isLoading} 
           />
         </div>
 
@@ -115,7 +98,6 @@ const RegisterForm = () => {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
             required 
             minLength={6}
-            disabled={status.isLoading} 
           />
         </div>
 
@@ -131,23 +113,22 @@ const RegisterForm = () => {
             placeholder="••••••••" 
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
             required 
-            disabled={status.isLoading} 
           />
         </div>
 
         <button 
           type="submit" 
-          disabled={status.isLoading} 
           className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg flex justify-center items-center mt-2"
         >
-          {status.isLoading ? 'Đang xử lý...' : 'Đăng ký ngay'}
+            Đăng ký
         </button>
       </form>
 
-      {/* Chuyển hướng Đăng nhập */}
       <p className="text-center text-sm text-gray-600 mt-6">
         Đã có tài khoản?{' '}
-        <a href="/login" className="font-medium text-blue-600 hover:text-blue-500 hover:underline">Đăng nhập</a>
+        <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500 hover:underline">
+          Đăng nhập
+        </Link>
       </p>
     </>
   )
